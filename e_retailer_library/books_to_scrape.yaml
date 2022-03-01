@@ -1,0 +1,76 @@
+---
+info:
+  name: elkjop.no
+  domain: https://www.elkjop.no/
+  country: 'no'
+  product_card_examples: []
+  listing_examples: []
+  warnings: []
+
+options:
+  input_path: input/content/content_template.xlsx
+  scrape_options:
+   rotate_proxy: False
+   proxy_address: http://host.docker.internal:8888
+   engine: scrapy
+   engine_settings:
+    DEFAULT_REQUEST_HEADERS:
+        referer: https://google.co.uk
+        pragma: no-cache
+        cache-control: no-cache
+        rtt: '600'
+        downlink: '1.5'
+        ect: 3g
+        dnt: '1'
+        upgrade-insecure-requests: '1'
+        accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+        sec-fetch-site: same-origin
+        sec-fetch-mode: navigate
+        sec-fetch-user: "?1"
+        sec-fetch-dest: document
+        accept-language: en-US,en;q=0.9,ur;q=0.8,zh-CN;q=0.7,zh;q=0.6
+        accept-Encoding: gzip, deflate, br
+    USER_AGENT: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+    ROBOTSTXT_OBEY: False
+    # DOWNLOAD_DELAY: 0.2
+    DOWNLOAD_TIMEOUT: 30
+    CONCURRENT_REQUESTS_PER_DOMAIN: 20
+    COOKIES_ENABLED: False
+    DOWNLOADER_MIDDLEWARES:
+        scrapy.downloadermiddlewares.useragent.UserAgentMiddleware: null
+        scrapy.downloadermiddlewares.retry.RetryMiddleware: null
+        scrapy_fake_useragent.middleware.RandomUserAgentMiddleware: 400
+        scrapy_fake_useragent.middleware.RetryUserAgentMiddleware: 401
+    FAKEUSERAGENT_PROVIDERS:
+        - scrapy_fake_useragent.providers.FakeUserAgentProvider
+        - scrapy_fake_useragent.providers.FakerProvider
+        - scrapy_fake_useragent.providers.FixedUserAgentProvider  # fall back to USER_AGENT value
+    AUTOTHROTTLE_ENABLED: True
+    AUTOTHROTTLE_START_DELAY: 5.0
+    AUTOTHROTTLE_MAX_DELAY: 60.0
+    AUTOTHROTTLE_TARGET_CONCURRENCY: 10.0
+    AUTOTHROTTLE_DEBUG: False
+    RETRY_ENABLED: True
+    RETRY_TIMES: 4
+    RETRY_HTTP_CODES: [500,502,503,504,400,401,403,404,405,406,407,408,409,410,429]
+    FEEDS: 
+      "generic_pdp3.csv": {"format": "csv"}
+
+product_card:
+
+  fields:
+    title:
+      scenarios:
+        - - get_element: {css: .product_main > h1::text}
+            parsing_functions: {strip: }
+
+    price:
+      scenarios:
+        - - get_element: {css: .product_main > p::text}
+            parsing_functions: {strip: }
+
+
+
+
+
+

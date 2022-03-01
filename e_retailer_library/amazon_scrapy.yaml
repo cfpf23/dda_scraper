@@ -1,0 +1,217 @@
+---
+info:
+  name: elkjop.no
+  domain: https://www.elkjop.no/
+  country: 'no'
+  product_card_examples: []
+  listing_examples: []
+  warnings: []
+
+options:
+  scrape_options:
+   rotate_proxy: False
+   proxy_address: http://host.docker.internal:8888
+   engine: scrapy
+   engine_settings:
+    DEFAULT_REQUEST_HEADERS:
+        referer: https://google.co.uk
+        pragma: no-cache
+        cache-control: no-cache
+        rtt: '600'
+        downlink: '1.5'
+        ect: 3g
+        dnt: '1'
+        upgrade-insecure-requests: '1'
+        accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+        sec-fetch-site: same-origin
+        sec-fetch-mode: navigate
+        sec-fetch-user: "?1"
+        sec-fetch-dest: document
+        accept-language: en-US,en;q=0.9,ur;q=0.8,zh-CN;q=0.7,zh;q=0.6
+        accept-Encoding: gzip, deflate, br
+    USER_AGENT: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+    ROBOTSTXT_OBEY: False
+    DOWNLOAD_DELAY: 0.2
+    DOWNLOAD_TIMEOUT: 30
+    CONCURRENT_REQUESTS_PER_DOMAIN: 20
+    COOKIES_ENABLED: False
+    DOWNLOADER_MIDDLEWARES:
+        scrapy.downloadermiddlewares.useragent.UserAgentMiddleware: null
+        scrapy.downloadermiddlewares.retry.RetryMiddleware: null
+        scrapy_fake_useragent.middleware.RandomUserAgentMiddleware: 400
+        scrapy_fake_useragent.middleware.RetryUserAgentMiddleware: 401
+    FAKEUSERAGENT_PROVIDERS:
+        - scrapy_fake_useragent.providers.FakeUserAgentProvider
+        - scrapy_fake_useragent.providers.FakerProvider
+        - scrapy_fake_useragent.providers.FixedUserAgentProvider  # fall back to USER_AGENT value
+    AUTOTHROTTLE_ENABLED: True
+    AUTOTHROTTLE_START_DELAY: 5.0
+    AUTOTHROTTLE_MAX_DELAY: 60.0
+    AUTOTHROTTLE_TARGET_CONCURRENCY: 10.0
+    AUTOTHROTTLE_DEBUG: False
+    RETRY_ENABLED: True
+    RETRY_TIMES: 4
+    RETRY_HTTP_CODES: [500,502,503,504,400,401,403,404,405,406,407,408,409,410,429]
+    FEEDS: 
+      "generic_listing.csv": {"format": "csv"}
+    LOG_FILE: "logs/generic_listing.log"
+
+product_card:
+
+  fields:
+    asin:
+      scenarios:
+        - - get_element: {css: "#ASIN" , attr: value}
+            parsing_functions: {}
+
+    brand:
+      scenarios:
+        - - get_element: {css: "#bylineInfo::text" }
+            parsing_functions: {clean_brand: }
+
+    price:
+      scenarios:
+        - - get_element: {css: "[class='a-price a-text-price a-size-medium'] > [aria-hidden='true']::text" }
+            parsing_functions: {clean_price: }
+
+    titles:
+      scenarios:
+        - - get_element: {css: "#productTitle::text"}
+            parsing_functions: {strip: "\n"}
+
+    delivery_cost:
+      scenarios:
+        - - get_element: {css: "#price-shipping-message > *::text"}
+            parsing_functions: {clean_delivery_price: }
+
+    no_bullet_points:
+      scenarios:
+        - - get_elements: {css: "[class='a-unordered-list a-vertical a-spacing-mini'] > * > *::text"}
+            parsing_functions:
+              input: {strip: }
+              output: {len: }
+
+    bullet_points_len:
+      scenarios:
+        - - get_elements: {css: "[class='a-unordered-list a-vertical a-spacing-mini'] > * > *::text"}
+            parsing_functions:
+              input: {strip: , len: }
+              output: {}
+
+    technical_details:
+      scenarios:
+        - - get_elements: {css: "#productDetails_techSpec_section_1 tr > .a-size-base::text"}
+            parsing_functions:
+              input: {clean_tech_details: }
+              output: {connect_tech_details: }
+
+        - - get_elements: {css: "#detailBullets_feature_div  #detailBullets_feature_div li *::text"}
+            parsing_functions:
+              input: {clean_tech_details: }
+              output: {connect_tech_details: }
+
+    description:
+      scenarios:
+        - - get_elements: {css: "#productDescription > * > *::text"}
+            parsing_functions:
+              input: {strip: }
+              output: {join: " "}
+
+    video:
+      scenarios:
+        - - get_element: {css: "#videoCount"}
+            parsing_functions: {bool: }
+
+    rich:
+      scenarios:
+        - - get_element: {css: "#aplus"}
+            parsing_functions: {bool: }
+
+    rating:
+      scenarios:
+        - - get_element: {css: "#averageCustomerReviews .a-icon-star > span.a-icon-alt::text"}
+            parsing_functions: {clean_rating: }
+
+    reviews:
+      scenarios:
+        - - get_element: {css: "#acrCustomerReviewText::text"}
+            parsing_functions: {clean_reviews: }
+
+    in_stock:
+      scenarios:
+        - - get_element: {css: ".a-size-medium.a-color-success"}
+            parsing_functions: {bool: }
+
+    no_variation:
+      scenarios:
+        - - get_element: {css: "script::text", re: '"dimensionValuesDisplayData" :\s+(.*),'}
+            parsing_functions: {get_variation_number: }
+
+    level_variation:
+      scenarios:
+        - - get_element: {css: "script::text", re: '"dimensionValuesDisplayData" :\s+(.*),'}
+            parsing_functions: {get_level_variations: }
+  
+    img_no:
+      scenarios:
+        - - get_element: {css: "script::text", re: "'colorImages':\\s+(.*),"}
+            parsing_functions: {get_no_img: }
+
+
+
+
+listing:
+
+  containers:
+  - parent_selector: div.s-main-slot.s-result-list.s-search-results.sg-row > .s-asin
+    page_type: search
+    fields:
+      sku:
+        scenarios:
+          - - get_element: {css: , attr: data-asin}
+              parsing_functions: {}
+
+      title:
+        scenarios:
+          - - get_element: {css: h2  span.a-text-normal::text}
+              parsing_functions: {strip: }
+
+      is_sponsored:
+        scenarios:
+          - - get_element: {css: "div.a-row.a-spacing-micro"}
+              parsing_functions: {bool: }
+
+      # description:
+      #   scenarios:
+      #     - - get_element: {css: p::text}
+      #         parsing_functions: {strip: ,}
+
+      # product_link:
+      #   scenarios:
+      #     - - get_element: {css: a.product__image, attr: href}
+      #         parsing_functions: {strip: ,}
+
+      price:
+        scenarios:
+          - - get_element: {css: "span.a-offscreen::text"}
+              parsing_functions: {strip: ,}
+
+      # image:
+        # scenarios:
+        #   - - get_element: {css: "img", attr: data-src}
+        #       parsing_functions: {strip: ,}
+
+      rating:
+        scenarios:
+          - - get_element: {css: ".a-spacing-top-micro div.a-size-small > span[aria-label]:nth-of-type(1)", attr: aria-label}
+              parsing_functions: {}
+
+      reviews:
+        scenarios:
+          - - get_element: {css: ".s-asin .a-spacing-top-micro div.a-size-small > span[aria-label]:nth-of-type(2)", attr: aria-label}
+              parsing_functions: {}
+
+
+  pagination:
+    scenarios:
+      - - go_to: {css: "li.a-last a", attr: href}

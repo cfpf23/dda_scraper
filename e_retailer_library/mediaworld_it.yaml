@@ -1,0 +1,223 @@
+# Wszystko spoko oprócz old price
+info:
+  name: mediaworld.it
+  domain: https://www.mediaworld.it/
+  country: it
+  product_card_examples: []
+  listing_examples: []
+  warnings: []
+
+options:
+  scrape_options:
+    engine: playwright
+    engine_settings:
+      headless: False
+      headers:
+        Pragma: no-cache
+        Cache-control: no-cache
+        Upgrade-insecure-requests: '1'
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+        Sec-fetch-site: same-origin
+        Sec-fetch-mode: navigate
+        Sec-fetch-user: "?1"
+        Sec-fetch-dest: document
+        Accept-language: en-US,en;q=0.9,ur;q=0.8,zh-CN;q=0.7,zh;q=0.6
+        Accept-Encoding: gzip, deflate, br
+      args:
+        - --ignore-ssl-errors=yes
+        - --ignore-certificate-errors
+        - --host-rules=MAP elgiganten.dk 23.79.135.164
+      # proxy_address:
+      #   server: "http://proxy_server:proxy_port"
+      #   username: username
+      #   password: password
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36"
+      viewport: {"width": 1920, "height": 1080}
+      # route_block: polyfills.3fd22a0fc65d6b05af88.js
+
+
+on_enter:
+  scenarios:
+  - - move: {x: 100, y: 200}
+    - wait: {seconds: 0.5}
+    - click: {css: "#onetrust-accept-btn-handler"}
+    - wait: {seconds: 0.2}
+
+product_card:
+  fields:
+    title:
+      scenarios:
+        - - get_element: {css: h1.product-name.hidden-xs::text}
+            parsing_functions: {strip: }
+
+    description:
+      scenarios:
+        - - get_elements: {css: "#marketing-content > font > *::text"}
+            parsing_functions:
+              input: {strip: }
+              output: {join: }
+
+    bulletpoints:
+      scenarios:
+        - - get_elements: {css: .product-review + *::text}
+            parsing_functions:
+              input: {strip: }
+              output: {}
+
+    rating:
+      scenarios:
+        - - get_element: {css: "script::text", re: window.mwProductDetailData\s+=\s+(.*)}
+            parsing_functions: {parse_mediaworld_rating: }
+
+    reviews:
+      scenarios:
+        - - get_element: {css: "script::text", re: window.mwProductDetailData\s+=\s+(.*)}
+            parsing_functions: {parse_mediaworld_reviews: }
+
+    images:
+      scenarios:
+        - - get_elements: {css: .slick-slide:not(.slick-cloned) img, attr: src}
+            parsing_functions:
+              input: {strip: }
+              output: {join: }
+
+    primary_image:
+      scenarios:
+        - - get_elements: {css: div.img-large img, attr: src}
+            parsing_functions: {}
+
+    brand:
+      scenarios:
+        - - get_element: {css: div.main-content.full-width div, attr: data-gtm-brand}
+            parsing_functions: {strip: }
+
+        - - get_element: {css: .marca span::text}
+            parsing_functions: {strip: }
+
+    price:
+      scenarios:
+        - - get_element: {css: "div.prod-price span[itemprop=price] > * > *::text"}
+            parsing_functions: {}
+
+        - - get_element: {css: "div.prod-price span[itemprop=price]::text"}
+            parsing_functions: {}
+
+    sku:
+      scenarios:
+        - - get_element: {css: "script::text", re: window.mwProductDetailData\s+=\s+(.*)}
+            parsing_functions: {parse_mediaworld_sku: }
+
+    old_price:
+      scenarios:
+        - - get_elements: {css: span.full-price.mw-price.strikeout::text}
+            parsing_functions: {clean_float: }
+
+    additional_info:
+      scenarios:
+        - - get_elements: {css: ".Tech-row__inner::text"}
+            parsing_functions:
+              input: {strip: }
+              output: {}
+
+    in_stock:
+      scenarios:
+        - - get_element: {css: .product-detail-main-container, attr: data-gtm-avail}
+            parsing_functions: {mediaworld_in_stock: }
+
+    rich:
+      scenarios:
+        - - get_elements: {css: ".flix-text-block"}
+            parsing_functions: {}
+
+    n_of_images:
+      scenarios:
+        - - get_elements: {css: .slick-slide:not(.slick-cloned) img, attr: src}
+            parsing_functions:
+              input: {strip: }
+              output: {len: }
+
+listing:
+
+  # on_enter:
+  #   scenarios:
+  #   - - move: {x: 100, y: 200}
+  #     - wait: {seconds: 0.5}
+  #     - click: {css: "#onetrust-accept-btn-handler"}
+  #     - wait: {seconds: 0.2}
+
+
+  containers:
+  - parent_selector: :nth-last-child(3) > .p-list-ff
+    page_type: search
+    fields:
+      sku:
+        scenarios:
+          - - get_element: {css: , attr: data-pcode}
+              parsing_functions: {}
+
+      title:
+        scenarios:
+          - - get_element: {css: "[class='product-name'] > *::text"}
+              parsing_functions: {}
+
+      brand:
+        scenarios:
+          - - get_element: {css: , attr: data-gtm-brand}
+              parsing_functions: {}
+
+      product_url:
+        scenarios:
+          - - get_element: {css: ".product-description a", attr: href}
+              parsing_functions: {create_product_url: https://www.mediaworld.it//}
+
+      description:
+        scenarios:
+          - - get_elements: {css: ".product-description a::text"}
+              parsing_functions:
+                input: {strip: , replace: {char: "\n", newchar: ""}}
+                output: {join: " "}
+
+      old_price:
+        scenarios:
+          - - get_element: {css: , attr: data-gtm-price data-gtm-price-full}
+              parsing_functions: {}
+
+      price:
+        scenarios:
+          - - get_element: {css: , attr: data-gtm-price}
+              parsing_functions: {}
+
+      main_image:
+        scenarios:
+          - - get_element: {css: .white + * > * > *, attr: src}
+              parsing_functions: {}
+
+      # is_sponsored:
+      #   scenarios:
+      #     - - get_element: {css: "[class*=StyledSponsoringWrapper]"}
+      #         parsing_functions: {bool: }
+
+      in_stock:
+        scenarios:
+          - - get_element: {css: '.temp-buttons > p.product-add-to-cart'}
+              parsing_functions: {bool: }
+
+      category:
+        scenarios:
+          - - get_element: {css: .product-category::text}
+              parsing_functions: {strip: }
+
+      rating:
+        scenarios:
+          - - get_element: {css: ".product-ratings > span", attr: data-rating}
+              parsing_functions: {}
+
+      reviews:
+        scenarios:
+          - - get_element: {css: ".col-2 > * > .rating-num::text"}
+              parsing_functions: {strip: }
+
+  pagination:
+    scenarios:
+      - - go_to: {css: ".top > * > [href='?page=2']", attr: href}
+      # - - click: {css: ":nth-last-child(5) > * > .next:not(.disabled) i"}

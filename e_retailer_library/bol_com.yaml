@@ -1,0 +1,249 @@
+---
+info:
+  name: bol.com
+  domain: https://www.bol.com/
+  country: com
+  product_card_examples: []
+  listing_examples: []
+  warnings: []
+
+options:
+  scrape_options:
+    engine: playwright
+    engine_settings:
+      headless: False
+      headers:
+        Pragma: no-cache
+        Cache-control: no-cache
+        Upgrade-insecure-requests: '1'
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+        Sec-fetch-site: same-origin
+        Sec-fetch-mode: navigate
+        Sec-fetch-user: "?1"
+        Sec-fetch-dest: document
+        Accept-language: en-US,en;q=0.9,ur;q=0.8,zh-CN;q=0.7,zh;q=0.6
+        Accept-Encoding: gzip, deflate, br
+      args:
+        - --ignore-ssl-errors=yes
+        - --ignore-certificate-errors
+        - --host-rules=MAP elgiganten.dk 23.79.135.164
+      # proxy_address:
+      #   server: "http://proxy_server:proxy_port"
+      #   username: username
+      #   password: password
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36"
+      viewport: {"width": 1920, "height": 1080}
+      # route_block: polyfills.3fd22a0fc65d6b05af88.js
+
+
+on_enter:
+  scenarios:
+    - - click: {css: button.js-confirm-button}
+      - wait: {seconds: 2}
+
+# product_card:
+#   fields:
+#     title:
+#       scenarios:
+#         - - get_element: {css: "span[data-test=title]::text"}
+#             parsing_functions: {strip: }
+
+#     description:
+#       scenarios:
+#         - - get_elements: {css: .product-description > p ~ *:not(ul)::text}
+#             parsing_functions:
+#               input: {strip: }
+#               output: {join: " "}
+
+#     bullet_points:
+#       scenarios:
+#         - - get_elements: {css: .product-description > * > li::text}
+#             parsing_functions:
+#               input: {strip: }
+#               output: {join: ", "}
+
+#     bullet_points_lenght:
+#       scenarios:
+#         - - get_elements: {css: .product-description > * > li::text}
+#             parsing_functions:
+#               input: {len: }
+#               output: {join: ", "}
+
+#     bullet_points_no:
+#       scenarios:
+#         - - get_elements: {css: .product-description > * > li::text}
+#             parsing_functions:
+#               input: {strip: }
+#               output: {len: }
+
+#     technical_details:
+#       scenarios:
+#         - - get_elements: {css: :nth-child(2) > .specs__row > *}
+#             parsing_functions:
+#               input: {strip: }
+#               output: {}
+
+#     rating:
+#       scenarios:
+#         - - get_element: {css: ".reviews-summary__avg-score::text"}
+#             parsing_functions: {}
+
+#     reviews:
+#       scenarios:
+#         - - get_element: {css: "reviews-summary__total-reviews::text"}
+#             parsing_functions: {}
+
+#     n_of_images:
+#       scenarios:
+#         - - get_elements: {css: "[unselectable='on']"}
+#             parsing_functions:
+#               input: {}
+#               output: {len: }
+
+#     images:
+#       scenarios:
+#         - - get_elements: {css: "[unselectable='on']", attr: src}
+#             parsing_functions:
+#               input: {}
+#               output: {}
+
+#     primary_image:
+#       scenarios:
+#         - - get_element: {css: ".js_selected_image", attr: src}
+#             parsing_functions: {}
+
+#     brand:
+#       scenarios:
+#         - - get_element: {css: "a[data-analytics-tag=brand]"}
+#             parsing_functions: {strip: }
+
+#     viedo:
+#       scenarios:
+#         - - get_element: {css: "div[data-test=product-video-thumb-1]"}
+#             parsing_functions: {bool: }
+
+#     price:
+#       scenarios:
+#         - - get_element: {css: .product-prices__currency.product-prices__bol-price::text}
+#             parsing_functions: {strip: }
+
+#     old_price:
+#       scenarios:
+#         - - get_element: {css: ".price-tag.price-old span::text"}
+#             parsing_functions: {strip: ,}
+
+#     sku:
+#       scenarios:
+#         - - get_element: {css: "div[data-product-id]", attr: data-product-id}
+#             parsing_functions: {strip: }
+
+#     categories:
+#       scenarios:
+#         - - get_elements: {css: ".breadcrumbs__link-label::text"}
+#             parsing_functions:
+#               input: {strip: }
+#               output: {join: ", "}
+
+#     in_stock:
+#       scenarios:
+#         - - get_element: {css: .buy-block__highlight}
+#             parsing_functions: {bool: }
+
+
+listing:
+
+  options:
+    download_delay: 1.5
+
+  containers:
+  - parent_selector: .product-item--row
+    page_type: search
+    fields:
+      sku:
+        scenarios:
+          - - get_element: {css: , attr: data-id}
+              parsing_functions: {}
+
+      title:
+        scenarios:
+          - - get_element: {css: .product-title::text}
+              parsing_functions: {kruidvat_nl_clean_title: }
+
+      sub_title:
+        scenarios:
+          - - get_element: {css: "[class='product-subtitle']::text"}
+              parsing_functions: {strip: }
+
+      brand:
+        scenarios:
+          - - get_element: {css: .product-creator a::text}
+              parsing_functions: {strip: }
+
+      product_url:
+        scenarios:
+          - - get_element: {css: ".product-title", attr: href}
+              parsing_functions: {create_product_url: "https://www.bol.com/"}
+
+      description:
+        scenarios:
+          - - get_element: {css: "[data-test='product-description']::text"}
+              parsing_functions: {kruidvat_nl_clean_description: ,}
+
+      product_specification:
+        scenarios:
+          - - get_elements: {css: .product-small-specs > * span::text}
+              parsing_functions:
+                input: {}
+                output: {}
+
+      price:
+        scenarios:
+          - - get_element: {css: meta, attr: content}
+              parsing_functions: {}
+
+      old_price:
+        scenarios:
+          - - get_element: {css: ":nth-last-child(6) > :nth-last-child(1) > del::text"}
+              parsing_functions: {}
+
+      image:
+        scenarios:
+          - - get_element: {css: img, attr: src}
+              parsing_functions: {create_product_url: "https://www.bol.com/"}
+
+      in_stock:
+        scenarios:
+          - - get_element: {css: .product-seller}
+              parsing_functions: {bool: }
+
+      is_sponsored:
+        scenarios:
+          - - get_element: {css: "[class='h-color-subtext u-pb--xs small_details']"}
+              parsing_functions: {bool: }
+
+      discount_value:
+        scenarios:
+          - - get_element: {css: "[class='product-prices  ab-discount small_details'] > *::text", re: Je\s+bespaart\s+(.*)}
+              parsing_functions: {}
+
+      rating:
+        scenarios:
+          - - get_element: {css: ".star-rating", attr: "title"}
+              parsing_functions: {bol_com_rating_parse: }
+
+      reviews:
+        scenarios:
+          - - get_element: {css: ".star-rating ", attr: "data-count"}
+              parsing_functions: {}
+
+      # seller:
+      #   scenarios:
+      #     - - get_element: {css: ".product-seller", re: Verkoop\s+door\s+(.*)}
+      #         parsing_functions: {strip: }
+
+
+  # pagination:
+  #   scenarios:
+  #     - - go_to: {css: "li.a-last a", attr: href}
+      # - - click: {css: "li.a-last a"}
+      #   - wait: {seconds: 0.5}

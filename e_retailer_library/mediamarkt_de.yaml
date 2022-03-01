@@ -1,0 +1,238 @@
+---
+info:
+  name: mediamarkt.de
+  domain: https://www.mediamarkt.de/
+  country: de
+  product_card_examples: []
+  listing_examples: []
+  warnings: []
+
+options:
+  scrape_options:
+    engine: playwright
+    engine_settings:
+      headless: False
+      headers:
+        Pragma: no-cache
+        Cache-control: no-cache
+        Upgrade-insecure-requests: '1'
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+        Sec-fetch-site: same-origin
+        Sec-fetch-mode: navigate
+        Sec-fetch-user: "?1"
+        Sec-fetch-dest: document
+        Accept-language: en-US,en;q=0.9,ur;q=0.8,zh-CN;q=0.7,zh;q=0.6
+        Accept-Encoding: gzip, deflate, br
+      # args:
+      #   - --ignore-ssl-errors=yes
+      #   - --ignore-certificate-errors
+      #   - --host-rules=MAP elgiganten.dk 23.79.135.164
+      # proxy_address:
+      #   server: "http://proxy_server:proxy_port"
+      #   username: username
+      #   password: password
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36"
+      viewport: {"width": 1920, "height": 1080}
+      route_block: 71370936b57b7.js
+
+on_enter:
+  scenarios:
+    - - move: {x: 100, y: 200}
+      - wait: {seconds: 1.5}
+      - click: {css: "#privacy-layer-accept-all-button"}
+      - wait: {seconds: 1}
+
+
+
+product_card:
+
+  # on_enter:
+  #   scenarios:
+  #   - - move: {x: 100, y: 200}
+  #     - wait: {seconds: 0.3}
+  #     - click: {css: "#privacy-layer-accept-all-button"}
+  #     # - wait: {seconds: 1}
+
+
+
+  fields:
+    title:
+      scenarios:
+        - - get_element: {css: "h1[color='#000']::text"}
+            parsing_functions: {strip: }
+
+    description:
+      scenarios:
+        - - get_elements: {css: "div[class*=StyledFallbackDescription] > *::text"}
+            parsing_functions:
+              input: {strip: }
+              output: {join: " "}
+
+    bulletpoints:
+      scenarios:
+        - - get_elements: {css: "div[class*=StyledFallbackDescription] > * > *::text"}
+            parsing_functions:
+              input: {strip: }
+              output: {join: ", "}
+
+    rating:
+      scenarios:
+        - - get_element: {css: "script::text", re: 'ratingValue":"(.*?)"'}
+            parsing_functions: {strip: }
+
+    reviews:
+      scenarios:
+        - - get_element: {css: "script::text", re: 'ratingCount":"(.*?)"'}
+            parsing_functions: {strip: }
+
+    images:
+      scenarios:
+        - - get_elements: {css: "div[data-test*=mms-image-thumbnail] img" , attr: src}
+            parsing_functions:
+              input: {strip: }
+              output: {}
+
+    primary_image:
+      scenarios:
+        - - get_element: {css: "div[data-test*=mms-image-thumbnail] img", attr: src}
+            parsing_functions: {}
+
+    brand:
+      scenarios:
+        - - get_element: {css: "script::text", re: '"@type":"Brand","name":"(.*?)"'}
+            parsing_functions: {strip: }
+
+    price:
+      scenarios:
+        - - get_elements: {css: "[font-family='price']::text"}
+            parsing_functions:
+              input: {strip: }
+              output: {join: }
+
+    sku:
+      scenarios:
+        - - get_element: {css: "script::text", re: 'sku":"(.*?)"'}
+            parsing_functions: {strip: }
+
+    old_price:
+      scenarios:
+        - - get_element: {css: "span[class*=ScreenreaderTextSpan]::text"}
+            parsing_functions: {strip: }
+
+    # additional_info:
+    #   scenarios:
+    #     - - get_elements: {css: ".Tech-row__inner::text"}
+    #         parsing_functions:
+    #           input: {strip: }
+    #           output: {}
+
+    in_stock:
+      scenarios:
+        - - get_element: {css: "script::text", re: '"availability":"http:\/\/schema.org\/InStock"'}
+            parsing_functions: {bool: }
+
+    # rich:
+    #   scenarios:
+    #     - - get_elements: {css: ".flix-text-block"}
+    #         parsing_functions: {}
+
+    categories:
+      scenarios:
+        - - get_elements: {css: "span[class*=Text-sc][color='#272422'][font-size='sm']::text"}
+            parsing_functions:
+              input: {strip: }
+              output: {}
+
+    video:
+      scenarios:
+        - - get_element: {css: "div[data-test*=mms-video-thumbnail]"}
+            parsing_functions: {bool: }
+
+    n_of_images:
+      scenarios:
+        - - get_elements: {css: "div[data-test*=mms-image-thumbnail]"}
+            parsing_functions:
+              input: {strip: }
+              output: {len: }
+
+
+listing:
+
+  options:
+    download_delay: 0
+
+  on_enter:
+    scenarios:
+      - - click: {css: "button[data-test=mms-search-srp-loadmore]"}
+        - wait: {seconds: 2}
+
+  containers:
+  - parent_selector: div[data-test*=mms-search-srp-productlist-item]
+    page_type: search
+    fields:
+      sku:
+        scenarios:
+          - - get_element: {css: .sku::text}
+              parsing_functions: {strip: }
+
+      title:
+        scenarios:
+          - - get_element: {css: "p[data-test=product-title]::text"}
+              parsing_functions: {}
+
+      brand:
+        scenarios:
+          - - get_element: {css: "p[data-test=product-title] span::text"}
+              parsing_functions: {strip: }
+
+      product_url:
+        scenarios:
+          - - get_element: {css: "a[data-test]", attr: href}
+              parsing_functions: {create_product_url: https://www.mediamarkt.de/}
+
+      technical_details:
+        scenarios:
+          - - get_elements: {css: "li[class*=StyledLi] > *::text"}
+              parsing_functions:
+                input: {strip: }
+                output: {join: " "}
+
+      old_price:
+        scenarios:
+          - - get_elements: {css: "[class*=StyledStrikeThrough] > *::text"}
+              parsing_functions:
+                input: {strip: }
+                output: {join: }
+
+      price:
+        scenarios:
+          - - get_elements: {css: "[class*=StyledStrikePriceTypo] + span > *::text"}
+              parsing_functions:
+                input: {strip: }
+                output: {join: }
+
+      main_image:
+        scenarios:
+          - - get_element: {css: picture > img, attr: src}
+              parsing_functions: {}
+
+      is_sponsored:
+        scenarios:
+          - - get_element: {css: "[class*=StyledSponsoringWrapper]"}
+              parsing_functions: {bool: }
+
+      in_stock:
+        scenarios:
+          - - get_element: {css: '[class*=StyledAvailability] > [data-test="mms-delivery-online-availability_AVAILABLE"] > span[class*=StyledAvailabilityStatusWrapper]'}
+              parsing_functions: {bool: }
+
+      rating:
+        scenarios:
+          - - get_element: {css: ".product-ratings__avarage::text"}
+              parsing_functions: {}
+
+      reviews:
+        scenarios:
+          - - get_element: {css: "[class*=StyledRating] > span::text"}
+              parsing_functions: {strip: }
+

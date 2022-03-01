@@ -1,0 +1,203 @@
+---
+info:
+  name: elkjop.no
+  domain: https://www.elkjop.no/
+  country: 'no'
+  product_card_examples: []
+  listing_examples: []
+  warnings: []
+
+options:
+  input_path: input/content/content_template.xlsx
+  scrape_options:
+    engine: playwright
+    engine_settings:
+      headless: False
+      headers:
+        Pragma: no-cache
+        Cache-control: no-cache
+        Upgrade-insecure-requests: '1'
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+        Sec-fetch-site: same-origin
+        Sec-fetch-mode: navigate
+        Sec-fetch-user: "?1"
+        Sec-fetch-dest: document
+        Accept-language: en-US,en;q=0.9,ur;q=0.8,zh-CN;q=0.7,zh;q=0.6
+        Accept-Encoding: gzip, deflate, br
+      # args:
+      #   - --ignore-ssl-errors=yes
+      #   - --ignore-certificate-errors
+      #   - --host-rules=MAP elgiganten.dk 23.79.135.164
+      # proxy_address:
+      #   server: "http://proxy_server:proxy_port"
+      #   username: username
+      #   password: password
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36"
+      viewport: {"width": 1920, "height": 1080}
+      # route_block: polyfills.3fd22a0fc65d6b05af88.js
+
+on_enter:
+  scenarios:
+    #handle cookies
+    - - move: {x: 100, y: 200}
+      - click: {css: "[onkeypress='CookieInformation.submitAllCategories();']"}
+      - wait: {seconds: 1}
+
+
+product_card:
+  options:
+    download_delay: 1
+
+  fields:
+    title:
+      scenarios:
+        - - get_element: {css: "h1.product-title::text"}
+            parsing_functions: {strip: }
+
+    description:
+      scenarios:
+        - - get_element: {css: "p.short-description::text"}
+            parsing_functions: {strip: ,}
+
+    bulletpoints:
+      scenarios:
+        - - get_elements: {css: ul.specs li::text}
+            parsing_functions:
+              input: {strip: }
+              output: {}
+
+    bulletpoints_length:
+      scenarios:
+        - - get_elements: {css: ul.specs li::text}
+            parsing_functions:
+              input: {len: }
+              output: {}
+    a_plus:
+      scenarios:
+        - - get_element: {css: section.product-inspiration div.article-text img}
+            parsing_functions: {bool: }
+
+    rating:
+      scenarios:
+        - - get_element: {css: div.product-ratings__avarage a::text}
+            parsing_functions: {strip: }
+
+    reviews:
+      scenarios:
+        - - get_element: {css: div.product-ratings__count a::text}
+            parsing_functions: {clean_reviews: }
+
+    n_of_images:
+      scenarios:
+        - - get_elements: {css: "div.slick-slide[role]"}
+            parsing_functions:
+              input: {}
+              output: {len: }
+
+    primary_image:
+      scenarios:
+        - - get_element: {css: .slick-current > *, attr: src}
+            parsing_functions: {strip: }
+
+    video:
+      scenarios:
+        - - get_element: {css: iframe.videoly-box}
+            parsing_functions: {bool: }
+
+    brand:
+      scenarios:
+        - - get_element: {css: "span[itemprop=brand] > meta", attr: content}
+            parsing_functions: {}
+
+    price:
+      scenarios:
+        - - get_element: {css: div.product-price-container span::text}
+            parsing_functions: {strip: }
+
+    sku:
+      scenarios:
+        - - get_element: {css: "section.section.product-main-info.main-content.padded.clearfix meta[itemprop=sku]", attr: content}
+            parsing_functions: {strip: }
+
+    categories:
+      scenarios:
+        - - get_elements: {css: ol.breadcrumbs.S-1-1 li a *::text}
+            parsing_functions:
+              input: {strip: }
+              output: {join: "; "}
+
+    in_stock:
+      scenarios:
+          - get_element: {css: div.add-to-basket:not(.disabled)}
+            parsing_functions: {bool: }
+
+listing:
+
+  options:
+    download_delay: 1.5
+
+  on_enter:
+    scenarios:
+    - - scroll: {x: 0, y: 1300}
+      - wait: {seconds: 2}
+      # - click: {css: "[onkeypress='CookieInformation.submitAllCategories();']"}
+      # - wait: {seconds: 1}
+      # - infinite_scroll: {}
+
+
+  containers:
+  - parent_selector: .mini-product-content
+    page_type: search
+    fields:
+      sku:
+        scenarios:
+          - - get_element: {css: .sku::text}
+              parsing_functions: {strip: }
+
+      title:
+        scenarios:
+          - - get_element: {css: .product-name, attr: title}
+              parsing_functions: {}
+
+      brand:
+        scenarios:
+          - - get_element: {css: .product-creator a::text}
+              parsing_functions: {strip: }
+
+      product_url:
+        scenarios:
+          - - get_element: {css: .product-image-link, attr: href}
+              parsing_functions: {create_product_url: https://www.elkjop.no/}
+
+      bullet_points:
+        scenarios:
+          - - get_elements: {css: .specs > *::text}
+              parsing_functions:
+                input: {strip: }
+                output: {}
+
+      price:
+        scenarios:
+          - - get_element: {css: .product-price::text}
+              parsing_functions: {strip: "\n"}
+
+      image:
+        scenarios:
+          - - get_element: {css: .mini-product-content .product-image-link .product-image, attr: src}
+              parsing_functions: {create_product_url: https://www.elkjop.no/}
+
+      in_stock:
+        scenarios:
+          - - get_element: {css: "[class='items-in-stock'] span.checkout-spacing"}
+              parsing_functions: {bool: }
+
+      rating:
+        scenarios:
+          - - get_element: {css: ".product-ratings__avarage::text"}
+              parsing_functions: {}
+
+      reviews:
+        scenarios:
+          - - get_element: {css: ".product-ratings__count::text"}
+              parsing_functions: {elkjop_no_review_parse: }
+

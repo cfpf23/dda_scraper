@@ -1,0 +1,136 @@
+---
+info:
+  name: di-life.at
+  domain: https://www.di-life.at/
+  country: at
+  product_card_examples: []
+  listing_examples: []
+  warnings: []
+
+options:
+  scrape_options:
+    engine: playwright
+    engine_settings:
+      headless: False
+      headers:
+        Pragma: no-cache
+        Cache-control: no-cache
+        Upgrade-insecure-requests: '1'
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+        Sec-fetch-site: same-origin
+        Sec-fetch-mode: navigate
+        Sec-fetch-user: "?1"
+        Sec-fetch-dest: document
+        Accept-language: en-US,en;q=0.9,ur;q=0.8,zh-CN;q=0.7,zh;q=0.6
+        Accept-Encoding: gzip, deflate, br
+      args:
+        - --ignore-ssl-errors=yes
+        - --ignore-certificate-errors
+        - --host-rules=MAP elgiganten.dk 23.79.135.164
+      # proxy_address:
+      #   server: "http://proxy_server:proxy_port"
+      #   username: username
+      #   password: password
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36"
+      viewport: {"width": 1920, "height": 1080}
+      # route_block: polyfills.3fd22a0fc65d6b05af88.js
+
+product_card:
+  fields:
+    title:
+      scenarios:
+        - - get_element: {css: "h1[itemprop=name]::text"}
+            parsing_functions: {strip: }
+
+    description:
+      scenarios:
+        - - get_element: {css: .pd_description::text}
+            parsing_functions: {strip: }
+
+    bullet_points:
+      scenarios:
+        - - get_elements: {css: .pd_description > * > li::text}
+            parsing_functions:
+              input: {strip: }
+              output: {join: ", "}
+
+    bullet_points_lenght:
+      scenarios:
+        - - get_elements: {css: .pd_description > * > li::text}
+            parsing_functions:
+              input: {len: }
+              output: {join: ", "}
+
+    bullet_points_no:
+      scenarios:
+        - - get_elements: {css: .pd_description > * > li::text}
+            parsing_functions:
+              input: {strip: }
+              output: {len: }
+
+    technical_details:
+      scenarios:
+        - - get_elements: {css: .rTD *}
+            parsing_functions:
+              input: {strip: }
+              output: {}
+
+    # I haven't found any product with reviews or rating # TODO
+    rating:
+      scenarios:
+        - - get_element: {css: ""}
+            parsing_functions: {}
+
+    reviews:
+      scenarios:
+        - - get_element: {css: ""}
+            parsing_functions: {}
+
+    n_of_images:
+      scenarios:
+        - - get_elements: {css: "[itemprop='thumbnail']"}
+            parsing_functions:
+              input: {}
+              output: {len: }
+
+    primary_image:
+      scenarios:
+        - - get_element: {css: "[class='img-responsive image-link']", attr: src}
+            parsing_functions: {strip: }
+
+    brand:
+      scenarios:
+        - - get_element: {css: "[class='pd_inforow'] + *"}
+            parsing_functions: {strip: }
+
+    rich:
+      scenarios:
+        - - get_element: {css: "#loadbeeIframeId"}
+            parsing_functions: {bool: }
+
+    price:
+      scenarios:
+        - - get_element: {css: .price-tag::text}
+            parsing_functions: {strip: }
+
+    old_price:
+      scenarios:
+        - - get_element: {css: ".price-tag.price-old span::text"}
+            parsing_functions: {strip: ,}
+
+    sku:
+      scenarios:
+        - - get_element: {css: .pd_inforow + :nth-child(2)::text}
+            parsing_functions: {strip: }
+
+    categories:
+      scenarios:
+        - - get_elements: {css: "[itemprop='title']::text"}
+            parsing_functions:
+              input: {strip: }
+              output: {join: ", "}
+
+    in_stock:
+      scenarios:
+        - - get_element: {css: .pd_inforow:nth-child(1), re: "(.*?(\blagernd\b)[^$]*)"}
+            parsing_functions: {bool: }

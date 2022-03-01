@@ -1,0 +1,227 @@
+---
+info:
+  name: elkjop.no
+  domain: https://www.elkjop.no/
+  country: 'no'
+  product_card_examples: []
+  listing_examples: []
+  warnings: []
+
+options:
+  scrape_options:
+    engine: playwright
+    engine_settings:
+      headless: False
+      headers:
+        Pragma: no-cache
+        Cache-control: no-cache
+        Upgrade-insecure-requests: '1'
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+        Sec-fetch-site: same-origin
+        Sec-fetch-mode: navigate
+        Sec-fetch-user: "?1"
+        Sec-fetch-dest: document
+        Accept-language: en-US,en;q=0.9,ur;q=0.8,zh-CN;q=0.7,zh;q=0.6
+        Accept-Encoding: gzip, deflate, br
+      # args:
+      #   - --ignore-ssl-errors=yes
+      #   - --ignore-certificate-errors
+      #   - --host-rules=MAP elgiganten.dk 23.79.135.164
+      # proxy_address:
+      #   server: "http://proxy_server:proxy_port"
+      #   username: username
+      #   password: password
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36"
+      viewport: {"width": 1920, "height": 1080}
+      # route_block: polyfills.3fd22a0fc65d6b05af88.js
+
+# on_enter:
+#   scenarios:
+#     #handle cookies
+#     - - wait: {seconds: 2}
+#       - move: {x: 100, y: 200}
+#       - click: {css: "#sp-cc-accept"}
+#       - wait: {seconds: 2}
+
+
+product_card:
+
+  on_enter:
+    scenarios:
+      #  - - wait: {seconds: 1}
+      #    - scroll: {x: 0, y: 500}
+      #    - wait: {seconds: 2}
+      #    - scroll: {x: 0, y: 500}
+      #    - wait: {seconds: 2}
+      #    - scroll: {x: 0, y: 500}
+      #    - wait: {seconds: 2}
+      #    - scroll: {x: 0, y: 500}
+         - - solve_amazon_captcha : {css: "#captchacharacters"}
+        #  - wait: {seconds: 2}
+
+  options:
+    download_delay: 1.7
+
+
+  fields:
+    asin:
+      scenarios:
+        - - get_element: {css: "#ASIN" , attr: value}
+            parsing_functions: {}
+
+    brand:
+      scenarios:
+        - - get_element: {css: "#bylineInfo::text" }
+            parsing_functions: {clean_brand: }
+
+    price:
+      scenarios:
+        - - get_element: {css: "[class='a-price a-text-price a-size-medium'] > [aria-hidden='true']::text" }
+            parsing_functions: {clean_price: }
+
+    titles:
+      scenarios:
+        - - get_element: {css: "#productTitle::text"}
+            parsing_functions: {strip: "\n"}
+
+    delivery_cost:
+      scenarios:
+        - - get_element: {css: "#price-shipping-message > *::text"}
+            parsing_functions: {clean_delivery_price: }
+
+    no_bullet_points:
+      scenarios:
+        - - get_elements: {css: "[class='a-unordered-list a-vertical a-spacing-mini'] > * > *::text"}
+            parsing_functions:
+              input: {strip: }
+              output: {len: }
+
+    bullet_points_len:
+      scenarios:
+        - - get_elements: {css: "[class='a-unordered-list a-vertical a-spacing-mini'] > * > *::text"}
+            parsing_functions:
+              input: {strip: , len: }
+              output: {}
+
+    technical_details:
+      scenarios:
+        - - get_elements: {css: "#productDetails_techSpec_section_1 tr > .a-size-base::text"}
+            parsing_functions:
+              input: {clean_tech_details: }
+              output: {connect_tech_details: }
+
+        - - get_elements: {css: "#detailBullets_feature_div  #detailBullets_feature_div li *::text"}
+            parsing_functions:
+              input: {clean_tech_details: }
+              output: {connect_tech_details: }
+
+    description:
+      scenarios:
+        - - get_elements: {css: "#productDescription > * > *::text"}
+            parsing_functions:
+              input: {strip: }
+              output: {join: " "}
+
+    video:
+      scenarios:
+        - - get_element: {css: "#videoCount"}
+            parsing_functions: {bool: }
+
+    rich:
+      scenarios:
+        - - get_element: {css: "#aplus"}
+            parsing_functions: {bool: }
+
+    rating:
+      scenarios:
+        - - get_element: {css: "#averageCustomerReviews .a-icon-star > span.a-icon-alt::text"}
+            parsing_functions: {clean_rating: }
+
+    reviews:
+      scenarios:
+        - - get_element: {css: "#acrCustomerReviewText::text"}
+            parsing_functions: {clean_reviews: }
+
+    in_stock:
+      scenarios:
+        - - get_element: {css: ".a-size-medium.a-color-success"}
+            parsing_functions: {bool: }
+
+    no_variation:
+      scenarios:
+        - - get_element: {css: "script::text", re: '"dimensionValuesDisplayData" :\s+(.*),'}
+            parsing_functions: {get_variation_number: }
+
+    level_variation:
+      scenarios:
+        - - get_element: {css: "script::text", re: '"dimensionValuesDisplayData" :\s+(.*),'}
+            parsing_functions: {get_level_variations: }
+  
+    img_no:
+      scenarios:
+        - - get_element: {css: "script::text", re: "'colorImages':\\s+(.*),"}
+            parsing_functions: {get_no_img: }
+
+
+
+
+listing:
+
+  options:
+    download_delay: 1.5
+
+  containers:
+  - parent_selector: div.s-main-slot.s-result-list.s-search-results.sg-row > .s-asin
+    page_type: search
+    fields:
+      sku:
+        scenarios:
+          - - get_element: {css: , attr: data-asin}
+              parsing_functions: {}
+
+      title:
+        scenarios:
+          - - get_element: {css: h2  span.a-text-normal::text}
+              parsing_functions: {strip: }
+
+      is_sponsored:
+        scenarios:
+          - - get_element: {css: "div.a-row.a-spacing-micro"}
+              parsing_functions: {bool: }
+
+      # description:
+      #   scenarios:
+      #     - - get_element: {css: p::text}
+      #         parsing_functions: {strip: ,}
+
+      # product_link:
+      #   scenarios:
+      #     - - get_element: {css: a.product__image, attr: href}
+      #         parsing_functions: {strip: ,}
+
+      price:
+        scenarios:
+          - - get_element: {css: "span.a-offscreen::text"}
+              parsing_functions: {strip: ,}
+
+      # image:
+        # scenarios:
+        #   - - get_element: {css: "img", attr: data-src}
+        #       parsing_functions: {strip: ,}
+
+      rating:
+        scenarios:
+          - - get_element: {css: ".a-spacing-top-micro div.a-size-small > span[aria-label]:nth-of-type(1)", attr: aria-label}
+              parsing_functions: {}
+
+      reviews:
+        scenarios:
+          - - get_element: {css: ".s-asin .a-spacing-top-micro div.a-size-small > span[aria-label]:nth-of-type(2)", attr: aria-label}
+              parsing_functions: {}
+
+
+  pagination:
+    scenarios:
+      - - go_to: {css: "li.a-last a", attr: href}
+      # - - click: {css: "li.a-last a"}
+      #   - wait: {seconds: 0.5}

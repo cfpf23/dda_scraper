@@ -1,0 +1,376 @@
+---
+info:
+  name: doz.pl
+  domain: https://www.doz.pl
+  country: pl
+  product_card_examples: []
+  listing_examples: []
+  warnings: []
+options:
+  fetch_all:
+    - - find_element_by_css: iv[class$=searchresults-footer] a
+      - click: "#sp-cc-accept"
+      - find_element_by_css: div[class$=searchresults-footer] a
+      - wait: 2 
+
+  on_enter:
+    scenarios:
+      - - wait: 4
+        - wait_for_appear: ".validateCaptcha"
+        - wait_for_appear: "#captchacharacters"
+        - click: "#sp-cc-accept"
+
+product_card:
+
+  fields:
+    title:
+      scenarios:
+        - - get_element: {css: "h1.product__title::text"}
+            parsing_functions: {strip: ,}
+
+    primary_image:
+      scenarios:
+        - - get_elements: {css: "li.miniatures__list-item.miniatures__list-item--active img", attr: src}
+            parsing_functions: {strip: ,}
+
+    secondary_images:
+      scenarios:
+        - - get_elements: {css: "li.miniatures__list-item img"}
+            parsing_functions: {len: ,}
+
+    rich_content:
+      scenarios:
+        - - get_elements: {css: "div#rc-rcWrapper"}
+            parsing_functions: {bool: ,}
+
+    description:
+      scenarios:
+        - - get_elements: {css: "section.product-card__about h2 p::text"}
+            parsing_functions: {strip: , join: " ",}
+
+    flag:
+      scenarios:
+        - - get_elements: {css: "div.container--icons svg::text"}
+            parsing_functions: {join: ",",}
+
+    price:
+      scenarios:
+        - - get_element: {css: "div.price::text"}
+            parsing_functions: {strip: ,}
+
+    availability:
+      scenarios:
+        - - get_element: {css: ""}
+            parsing_functions: {strip: ,}
+
+
+listing:
+  on_enter:
+    scenarios:
+      - - click: li.a-last a
+
+  containers:
+  - parent_selector: section.section.wrapper.product-slider.product-slider--clasic div.product__list-item.product.product--higher
+    page_type: homepage
+    fields:
+      sku:
+        scenarios:
+          - - get_elements: {css: a.product__image, attr: href}
+              parsing_functions: {extract_stuff_between_diffs: ["/p", "-"],}
+
+      title:
+        scenarios:
+          - - get_elements: {css: div.subtitle.subtitle--small a, attr: title}
+              parsing_functions: {strip: ,}
+
+      description:
+        scenarios:
+          - - get_element: {css: p::text}
+              parsing_functions: {strip: ,}
+
+      product_link:
+        scenarios:
+          - - get_element: {css: a.product__image, attr: href}
+              parsing_functions: {strip: ,}
+
+      price:
+        scenarios:
+          - - get_element: {css: "a[class$=price]::text"}
+              parsing_functions: {strip: ,}
+
+      image:
+        scenarios:
+          - - get_element: {css: "img", attr: data-src}
+              parsing_functions: {strip: ,}
+
+  - parent_selector: "#swiper-recomended li"
+    page_type: homepage
+    fields:
+      sku:
+        scenarios:
+          - - get_element: {css: "a.product__image", attr: href}
+              parsing_functions: {extract_stuff_between_diffs: ["/p", "-"],}
+
+      title:
+        scenarios:
+          - - get_element: {css: "a img", attr: alt}
+              parsing_functions: {strip: ,}
+
+      description:
+        scenarios:
+          - - get_element: {css: "p::text"}
+              parsing_functions: {strip: ,}
+
+      product_link:
+        scenarios:
+          - - get_element: {css: "a.product__image", attr: href}
+              parsing_functions: {strip: ,}
+
+      price:
+        scenarios:
+          - - get_element: {css: "a[class$=price]::text"}
+              parsing_functions: {strip: ,}
+
+      flag:
+        scenarios:
+          - - get_elements: {css: svg, attr: data-tippy-content}
+              parsing_functions: {join: ", ",}
+
+      image:
+        scenarios:
+          - - get_elements: {css: a img, attr:src}
+
+  - parent_selector: "#js-swiper-custom li"
+    page_type: homepage
+    fields:
+      sku:
+        scenarios:
+          - - get_elements: {css: a.product__image, attr: href}
+              parsing_functions: {extract_stuff_between_diffs: ["/p", "-"],}
+
+      title:
+        scenarios:
+          - - get_elements: {css: a img, attr: alt}
+              parsing_functions: {strip: ,}
+
+      description:
+        scenarios:
+          - - get_element: {css: p::text}
+              parsing_functions: {strip: ,}
+
+      product_link:
+        scenarios:
+          - - get_element: {css: a.product__image, attr: href}
+              parsing_functions: {strip: ,}
+
+      price:
+        scenarios:
+          - - get_element: {css: "a[class$=price]::text", }
+              parsing_functions: {strip: ,}
+
+      flag:
+        scenarios:
+          - - get_elements: {css: svg, attr: data-tippy-content}
+              parsing_functions: {join: ", ",}
+
+      image:
+        scenarios:
+          - - get_elements: {css: a img, attr: src}
+              parsing_functions: {join: ", ",}
+
+  - parent_selector: "#js-swiper-newest li.product__list-item.product.swiper-slide.swiper-slide-visible"
+    page_type: homepage
+    fields:
+      sku:
+        scenarios:
+          - - get_elements: {css: a.product__image, attr: href}
+              parsing_functions: {extract_stuff_between_diffs: ["/p", "-"],}
+
+      title:
+        scenarios:
+          - - get_elements: {css: a img, attr: alt}
+              parsing_functions: {strip: ,}
+
+      description:
+        scenarios:
+          - - get_element: {css: p::text}
+              parsing_functions: {strip: ,}
+
+      product_link:
+        scenarios:
+          - - get_element: {css: a.product__image, attr: href}
+              parsing_functions: {strip: ,}
+
+      price:
+        scenarios:
+          - - get_element: {css: "a[class$=price]::text"}
+              parsing_functions: {strip: ,}
+
+      flag:
+        scenarios:
+          - - get_elements: {css: svg, attr: data-tippy-content}
+              parsing_functions: {join: ", ",}
+
+      image:
+        scenarios:
+          - - get_elements: {css: a img, attr: src}
+              parsing_functions: {join: ", ",}
+
+  - parent_selector: "#js-swiper-last-watched li"
+    page_type: homepage
+    fields:
+      sku:
+        scenarios:
+          - - get_elements: {css: a.product__image, attr: href}
+              parsing_functions: {extract_stuff_between_diffs: ["/p", "-"],}
+
+      title:
+        scenarios:
+          - - get_elements: {css: a img, attr: alt}
+              parsing_functions: {strip: ,}
+
+      description:
+        scenarios:
+          - - get_element: {css: p::text}
+              parsing_functions: {strip: ,}
+
+      product_link:
+        scenarios:
+          - - get_element: {css: a.product__image, attr: href}
+              parsing_functions: {strip: ,}
+
+      price:
+        scenarios:
+          - - get_element: {css: "a[class$=price]::text", }
+              parsing_functions: {strip: ,}
+
+      flag:
+        scenarios:
+          - - get_elements: {css: svg, attr: data-tippy-content}
+              parsing_functions: {join: ", ",}
+
+      image:
+        scenarios:
+          - - get_elements: {css: a img, attr: src}
+              parsing_functions: {join: ", ",}
+
+  - parent_selector: "div#product-list li"
+    page_type: category_page
+    fields:
+      sku:
+        scenarios:
+          - - get_elements: {css: a.product__image, attr: href}
+              parsing_functions: {extract_stuff_between_diffs: ["/p", "-"],}
+
+      title:
+        scenarios:
+          - - get_elements: {css: a img, attr: alt}
+              parsing_functions: {strip: ,}
+
+      description:
+        scenarios:
+          - - get_element: {css: p::text}
+              parsing_functions: {strip: ,}
+
+      product_link:
+        scenarios:
+          - - get_element: {css: a.product__image, attr: href}
+              parsing_functions: {strip: ,}
+
+      price:
+        scenarios:
+          - - get_element: {css: "a[class$=price]::text", }
+              parsing_functions: {strip: ,}
+
+      flag:
+        scenarios:
+          - - get_elements: {css: svg, attr: data-tippy-content}
+              parsing_functions: {join: ", ",}
+
+      image:
+        scenarios:
+          - - get_elements: {css: a img, attr: src}
+              parsing_functions: {join: ", ",}
+
+
+  banners:
+  - name: head banner
+    parent_selector: ".slideshow__list-item"
+    page_type: homepage
+    fields:
+      redirect_selector:
+        scenarios:
+          - - get_elements: {css: a, attr: href}
+
+      source_selector:
+        scenarios:
+          - - get_elements: {css: a img, attr: src}
+
+  - name: middle panel
+    page_type: homepage
+    parent_selector: ".product__list-item.product.product--higher"
+    fields:
+      redirect_selector:
+        scenarios:
+          - - get_elements: {css: a.product__image, attr: href}
+
+      source_selector:
+        scenarios:
+          - - get_elements: {css: a.product__image img, attr: src}
+
+  - name:  brands panel
+    page_type: homepage
+    parent_selector: "#js-swiper-brand li"
+    fields:
+      redirect_selector:
+        scenarios:
+          - - get_elements: {css: a, attr: href}
+
+      source_selector:
+        scenarios:
+          - - get_elements: {css: a img, attr: src}
+
+  - name:  dropdown-menu banner
+    page_type: homepage
+    parent_selector: ul li div.submenu div.submenu__sidebar
+    fields:
+      redirect_selector:
+        scenarios:
+          - - get_elements: {css: "a[data-gtm-event]", attr: href}
+
+      source_selector:
+        scenarios:
+          - - get_elements: {css: "a[data-gtm-event] img", attr: src}
+
+  - name:  under banner
+    page_type: homepage
+    parent_selector: section.section.wrapper.adoceans
+    fields:
+      redirect_selector:
+        scenarios:
+          - - get_elements: {css: a, attr: href}
+
+      source_selector:
+        scenarios:
+          - - get_elements: {css: a img, attr: src}
+
+  - name:   "'mostly-choosen-brands' section"
+    page_type: category_page
+    parent_selector: ".brands .brands__list .brands__list-item"
+    fields:
+      redirect_selector:
+        scenarios:
+          - - get_elements: {css: a, attr: href}
+
+      source_selector:
+        scenarios:
+          - - get_elements: {css: a img, attr: src}
+
+
+  pagination:
+    scenarios:
+      - - go_to_url: {css: ".s-pagination-item.s-pagination-next.s-pagination-button.s-pagination-separator", attr: href}
+        - wait: 2
+      - - go_to_url: {css: "li.a-last a", attr: href}
+        - wait: 2
+

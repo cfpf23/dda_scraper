@@ -1,0 +1,172 @@
+---
+info:
+  name: kruidvat.nl
+  domain: https://www.kruidvat.nl/
+  country: nl
+  product_card_examples: []
+  listing_examples: []
+  warnings: []
+
+options:
+  scrape_options:
+    engine: playwright
+    engine_settings:
+      headless: False
+      headers:
+        Pragma: no-cache
+        Cache-control: no-cache
+        Upgrade-insecure-requests: '1'
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+        Sec-fetch-site: same-origin
+        Sec-fetch-mode: navigate
+        Sec-fetch-user: "?1"
+        Sec-fetch-dest: document
+        Accept-language: en-US,en;q=0.9,ur;q=0.8,zh-CN;q=0.7,zh;q=0.6
+        Accept-Encoding: gzip, deflate, br
+      args:
+        - --ignore-ssl-errors=yes
+        - --ignore-certificate-errors
+        - --host-rules=MAP elgiganten.dk 23.79.135.164
+      # proxy_address:
+      #   server: "http://proxy_server:proxy_port"
+      #   username: username
+      #   password: password
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36"
+      viewport: {"width": 1920, "height": 1080}
+      # route_block: polyfills.3fd22a0fc65d6b05af88.js
+
+product_card:
+  fields:
+    title:
+      scenarios:
+        - - get_element: {css: h1.product-title::text}
+            parsing_functions: {kruidvat_nl_clean_title: }
+
+    description:
+      scenarios:
+        - - get_elements: {css: ".product-information__wrapper > [class='product-information__text']::text"} 
+            parsing_functions:
+              input: {kruidvat_nl_clean_description_pdp: }
+              output: {join: ","}
+
+    rating:
+      scenarios:
+        - - get_element: {css: div.row-rate e2-rating, attr: rating}
+            parsing_functions: {}
+
+    reviews:
+      scenarios:
+        - - get_element: {css: div.row-rate e2-rating, attr: reviews-number}
+            parsing_functions: {}
+
+    n_of_images:
+      scenarios:
+        - - get_elements: {css: div.thumbnail-item img}
+            parsing_functions:
+              input: {}
+              output: {len: }
+
+    primary_image:
+      scenarios:
+        - - get_element: {css: div img.preview.selected, attr: src}
+            parsing_functions: {create_product_url: https://www.kruidvat.nl}
+
+    images_links:
+      scenarios:
+        - - get_elements: {css: div.thumbnail-item img, attr: src}
+            parsing_functions:
+              input: {create_product_url: https://www.kruidvat.nl}
+              output: {}
+
+    video:
+      scenarios:
+        - - get_element: {css: div.thumbnail-item--video}
+            parsing_functions: {bool: }
+
+    brand:
+      scenarios:
+        - - get_element: {css: "span[itemprop=brand]::text"}
+            parsing_functions: {}
+
+    price:
+      scenarios:
+        - - get_elements: {css: ".pricebadge--big .pricebadge__new-price > *::text"}
+            parsing_functions:
+              input: {strip: }
+              output: {join: }
+
+    sku:
+      scenarios:
+        - - get_element: {css: "span[itemprop=sku]::text"}
+            parsing_functions: {}
+
+    categories:
+      scenarios:
+        - - get_elements: {css: ul.e2-breadcrumbs-navigation__items li a::text}
+            parsing_functions:
+              input: {kruidvat_nl_clean_categories_pdp: }
+              output: {join: ", "}
+
+    in_stock:
+      scenarios:
+        - - get_element: {css: "e2-scroll-observer .add-to-cart:not(.add-to-cart--out-of-stock)"}
+            parsing_functions: {bool: }
+
+
+listing:
+
+  options:
+    download_delay: 1.5
+
+  containers:
+  - parent_selector: .tile__product-slide
+    page_type: search
+    fields:
+      sku:
+        scenarios:
+          - - get_element: {css: , attr: data-code}
+              parsing_functions: {}
+
+      title:
+        scenarios:
+          - - get_element: {css: .tile__product-slide-product-name::text}
+              parsing_functions: {kruidvat_nl_clean_title: }
+
+      product_url:
+        scenarios:
+          - - get_element: {css: ".ClickSearchResultEvent_Class.tile__product-slide-link", attr: href}
+              parsing_functions: {create_kruidvat_nl_link: }
+
+      description:
+        scenarios:
+          - - get_element: {css: .tile__product-slide-product-description::text}
+              parsing_functions: {kruidvat_nl_clean_description: ,}
+
+      price:
+        scenarios:
+          - - get_elements: {css: ".pricebadge__new-price *::text"}
+              parsing_functions:
+                input: {kruidvat_nl_clean_price: }
+                output: {join: ""}
+
+      image:
+        scenarios:
+          - - get_element: {css: ".tile__product-slide a img", attr: data-src}
+              parsing_functions: {create_kruidvat_nl_link: ,}
+
+      rating:
+        scenarios:
+          - - get_element: {css: "e2-rating", attr: "rating"}
+              parsing_functions: {}
+
+      reviews:
+        scenarios:
+          - - get_element: {css: "e2-rating", attr: "reviews-number"}
+              parsing_functions: {}
+
+
+  # pagination:
+  #   scenarios:
+  #     - - go_to: {css: "li.a-last a", attr: href}
+      # - - click: {css: "li.a-last a"}
+      #   - wait: {seconds: 0.5}

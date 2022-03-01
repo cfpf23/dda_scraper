@@ -1,0 +1,171 @@
+---
+# wyciagac wiecej rzczy z jsonow np w script jest brand
+# Listing GOOD
+info:
+  name: '0815.at'
+  domain: https://www.0815.at/
+  country: at
+  product_card_examples: []
+  listing_examples: []
+  warnings: []
+
+options:
+  scrape_options:
+    engine: playwright
+    engine_settings:
+      headless: False
+      headers:
+        Pragma: no-cache
+        Cache-control: no-cache
+        Upgrade-insecure-requests: '1'
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+        Sec-fetch-site: same-origin
+        Sec-fetch-mode: navigate
+        Sec-fetch-user: "?1"
+        Sec-fetch-dest: document
+        Accept-language: en-US,en;q=0.9,ur;q=0.8,zh-CN;q=0.7,zh;q=0.6
+        Accept-Encoding: gzip, deflate, br
+      args:
+        - --ignore-ssl-errors=yes
+        - --ignore-certificate-errors
+        - --host-rules=MAP elgiganten.dk 23.79.135.164
+      # proxy_address:
+      #   server: "http://proxy_server:proxy_port"
+      #   username: username
+      #   password: password
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36"
+      viewport: {"width": 1920, "height": 1080}
+      # route_block: polyfills.3fd22a0fc65d6b05af88.js
+
+product_card:
+  fields:
+    title:
+      scenarios:
+        - - get_element: {css: .custom-detail-headline}
+            parsing_functions: {strip: }
+
+    description:
+      scenarios:
+        - - get_element: {css: script::text, re: "'productDescription': `(.*?)`"}
+            parsing_functions: {strip: }
+
+    rich:
+      scenarios:
+        - - get_element: {css: .syndi_powerpage}
+            parsing_functions: {bool: }
+
+        - - get_element: {css: "div[itemprop=description] img"}
+            parsing_functions: {bool: }
+
+    rating:
+      scenarios:
+        - - get_element: {css: "div[itemprop=ratingValue]::text"}
+            parsing_functions: {}
+
+    reviews:
+      scenarios:
+        - - get_element: {css: "meta[itemprop=reviewCount]", attr: content}
+            parsing_functions: {}
+
+    n_of_images:
+      scenarios:
+        - - get_elements: {css: .gallery-slider-thumbnails-image}
+            parsing_functions:
+              input: {}
+              output: {len: }
+
+    primary_image:
+      scenarios:
+        - - get_element: {css: "#tns2-item0 > div img", attr: src}
+            parsing_functions: {}
+
+    video:
+      scenarios:
+        - - get_element: {css: .fa-play-circle}
+            parsing_functions: {bool: }
+
+    brand:
+      scenarios:
+        - - get_element: {css: .product-detail-manufacturer-link, attr: title}
+            parsing_functions: {}
+
+    price:
+      scenarios:
+        - - get_elements: {css: .product-detail-buy .custom-price-style > span + *}
+            parsing_functions:
+              input: {strip: }
+              output: {join: }
+
+    old_price:
+      scenarios:
+        - - get_element: {css: div.custom-price-style-instead::text}
+            parsing_functions: {strip: }
+
+    sku:
+      scenarios:
+        - - get_element: {css: "div[data-bv-show=rating_summary]", attr: data-bv-product-id}
+            parsing_functions: {}
+
+    categories:
+      scenarios:
+        - - get_elements: {css: .breadcrumb-title::text}
+            parsing_functions:
+              input: {strip: }
+              output: {join: ", "}
+
+    in_stock:
+      scenarios:
+        - - get_element: {css: .row.custom-detail-availability-bottom}
+            parsing_functions: {bool: }
+
+listing:
+
+  containers:
+  - parent_selector: .custom-product-inner
+    page_type: search
+    fields:
+      sku:
+        scenarios:
+          - - get_element: {css: .product-id-value::text}
+              parsing_functions: {strip: , replace: {char: "\n", newchar: ""}}
+
+      title:
+        scenarios:
+          - - get_element: {css: .product-info a, attr: title}
+              parsing_functions: {}
+
+      short_description:
+        scenarios:
+          - - get_element: {css: .product-shortdescription::text}
+              parsing_functions: {strip: , replace: {char: "\n", newchar: ""}}
+
+      product_url:
+        scenarios:
+          - - get_element: {css: .product-info a, attr: href}
+              parsing_functions: {}
+
+      old_price:
+        scenarios:
+          - - get_element: {css: .custom-price-style-instead::text}
+              parsing_functions: {strip: , replace: {char: "\n", newchar: ""}}
+
+      price:
+        scenarios:
+          - - get_elements: {css: .custom-price-style > *::text}
+              parsing_functions:
+                input: {strip: , replace: {char: "\n", newchar: ""}}
+                output: {join: ""}
+
+      image:
+        scenarios:
+          - - get_element: {css: .product-image, attr: src}
+              parsing_functions: {}
+
+      in_stock:
+        scenarios:
+          - - get_element: {css: ".product-availability"}
+              parsing_functions: {bool: }
+
+  pagination:
+    scenarios:
+      - - pagination_click: {css: "[for='p2']", wait: 2}

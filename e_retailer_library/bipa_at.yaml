@@ -1,0 +1,201 @@
+# Listing GOOD
+info:
+  name: bipa.at
+  domain: https://www.bipa.at/
+  country: at
+  product_card_examples: []
+  listing_examples: []
+  warnings: []
+options:
+  scrape_options:
+    engine: playwright
+    engine_settings:
+      headless: False
+      headers:
+        Pragma: no-cache
+        Cache-control: no-cache
+        Upgrade-insecure-requests: '1'
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+        Sec-fetch-site: same-origin
+        Sec-fetch-mode: navigate
+        Sec-fetch-user: "?1"
+        Sec-fetch-dest: document
+        Accept-language: en-US,en;q=0.9,ur;q=0.8,zh-CN;q=0.7,zh;q=0.6
+        Accept-Encoding: gzip, deflate, br
+      args:
+        - --ignore-ssl-errors=yes
+        - --ignore-certificate-errors
+        - --host-rules=MAP elgiganten.dk 23.79.135.164
+      # proxy_address:
+      #   server: "http://proxy_server:proxy_port"
+      #   username: username
+      #   password: password
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36"
+      viewport: {"width": 1920, "height": 1080}
+      # route_block: polyfills.3fd22a0fc65d6b05af88.js
+
+
+
+on_enter:
+  scenarios:
+    - - move: {x: 100, y: 200}
+      - click: {css: "#onetrust-accept-btn-handler"}
+      - wait: {seconds: 2}
+
+
+
+product_card:
+
+  on_enter:
+    scenarios:
+    - - move: {x: 100, y: 200}
+      - click: {css: "#onetrust-accept-btn-handler"}
+      - wait: {seconds: 2}
+
+
+  fields:
+    title:
+      scenarios:
+        - - get_element: {css: .pdp__cockpit--pname::text}
+            parsing_functions: {strip: }
+
+    description:
+      scenarios:
+        - - get_element: {css: .description::text}
+            parsing_functions: {strip: }
+
+    bulletpoints:
+      scenarios:
+        - - get_elements: {css: .detail-desc > *::text}
+            parsing_functions: 
+              input: {strip: }
+              output: {}
+
+    bulletpoints_length:
+      scenarios:
+        - - get_elements: {css: .detail-desc > *::text}
+            parsing_functions: 
+              input: {len: }
+              output: {}
+
+    bulletpoints_no:
+      scenarios:
+        - - get_elements: {css: .detail-desc > *::text}
+            parsing_functions: 
+              input: {}
+              output: {len: }
+
+    rating:
+      scenarios:
+        - - get_element: {css: .bv-popup-target > *::text}
+            parsing_functions: {strip: }
+
+    reviews:
+      scenarios:
+        - - get_element: {css: "[itemprop='reviewCount']::text"}
+            parsing_functions: {strip: }
+
+    n_of_images:
+      scenarios:
+        - - get_elements: {css: "#slider-for > *"}
+            parsing_functions: 
+              input: {}
+              output: {len: }
+
+    primary_image:
+      scenarios:
+        - - get_element: {css: "#slider-for #pic-0 a", attr: href}
+            parsing_functions: {}
+
+    brand:
+      scenarios:
+        - - get_element: {css: ".pdp__cockpit--pbrand-link::text"}
+            parsing_functions: {strip: }
+
+    price:
+      scenarios:
+        - - get_element: {css: "script:not([type='application/ld+json'])::text", re: '"price":(.*?),'}
+            parsing_functions: {strip: }
+
+    is_bestseller:
+      scenarios:
+        - - get_element: {css: .mini-badge .badge.bestseller}
+            parsing_functions: {bool: }
+
+    old_price:
+      scenarios:
+        - - get_element: {css: "[class='instead-price'] > *::text"}
+            parsing_functions: {strip: }
+
+    sku:
+      scenarios:
+        - - get_element: {css: "input[name=pid]", attr: value}
+            parsing_functions: {}
+
+    categories:
+      scenarios:
+        - - get_elements: {css: "#breadcrumb > :not(:empty) + * > *::text"}
+            parsing_functions: 
+              input: {strip: }
+              output: {}
+
+    in_stock:
+      scenarios:
+        - - get_element: {css: .stockstatus.isinstock}
+            parsing_functions: {bool: }
+
+listing:
+
+  options:
+    download_delay: 1.5
+
+  on_enter:
+    scenarios:
+      - - click: {css: "#more-products-button", optional: True}
+        - wait: {seconds: 2}
+
+
+  containers:
+  - parent_selector: "#search-result-items .card.product-tile-card"
+    page_type: search
+    fields:
+      sku:
+        scenarios:
+          - - get_element: {css: , attr: date-pid}
+              parsing_functions: {}
+
+      title:
+        scenarios:
+          - - get_element: {css: , attr: data-gtmdata}
+              parsing_functions: {bipa_at_listing_data_gtmdata_parse: name, replace: {char: "\n", newchar: ""}}
+
+      brand:
+        scenarios:
+          - - get_element: {css: , attr: data-gtmdata}
+              parsing_functions: {bipa_at_listing_data_gtmdata_parse: brand}
+
+      category:
+        scenarios:
+          - - get_element: {css: , attr: data-gtmdata}
+              parsing_functions: {bipa_at_listing_data_gtmdata_parse: category}
+
+      product_url:
+        scenarios:
+          - - get_element: {css: a, attr: href}
+              parsing_functions: {create_product_url: "https://www.bipa.at/"}
+
+      price:
+        scenarios:
+          - - get_element: {css: , attr: data-gtmdata}
+              parsing_functions: {bipa_at_listing_data_gtmdata_parse: price}
+
+      image:
+        scenarios:
+          - - get_element: {css: source, attr: srcset}
+              parsing_functions: {}
+
+      in_stock:
+        scenarios:
+          - - get_element: {css: ".button-addtocart"}
+              parsing_functions: {bool: }
+

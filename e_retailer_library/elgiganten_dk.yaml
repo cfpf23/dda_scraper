@@ -1,0 +1,233 @@
+---
+info:
+  name: elgiganten.dk
+  domain: https://www.elgiganten.dk/
+  country: dk
+  product_card_examples: []
+  listing_examples: []
+  warnings: []
+
+options:
+  scrape_options:
+    engine: playwright
+    engine_settings:
+      headless: False
+      # headers:
+      #   Pragma: no-cache
+      #   Cache-control: no-cache
+      #   Upgrade-insecure-requests: '1'
+      #   Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+      #   Sec-fetch-site: same-origin
+      #   Sec-fetch-mode: navigate
+      #   Sec-fetch-user: "?1"
+      #   Sec-fetch-dest: document
+      #   Accept-language: en-US,en;q=0.9,ur;q=0.8,zh-CN;q=0.7,zh;q=0.6
+      #   Accept-Encoding: gzip, deflate, br
+      # args:
+      #   - --ignore-ssl-errors=yes
+      #   - --ignore-certificate-errors
+      #   - --host-rules=MAP elgiganten.dk 23.79.135.164
+      # proxy_address:
+      #   server: "http://proxy_server:proxy_port"
+      #   username: username
+      #   password: password
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36"
+      viewport: {"width": 1920, "height": 1080}
+      # route_block: polyfills.3fd22a0fc65d6b05af88.js
+
+
+on_enter:
+  scenarios:
+  - - move: {x: 100, y: 80}
+    - click: {css: "[onclick='CookieInformation.submitAllCategories();']"}
+    - wait: {seconds: 4}
+
+
+
+product_card:
+
+  on_enter:
+    scenarios:
+    - - move: {x: 100, y: 200}
+      - click: {css: "[onclick='CookieInformation.submitAllCategories();']"}
+      - wait: {seconds: 1}
+      - infinite_scroll: {}
+
+
+  fields:
+    title:
+      scenarios:
+        - - get_element: {css: ".product-title::text"}
+            parsing_functions: {strip: }
+
+    short_description:
+      scenarios:
+        - - get_element: {css: ".short-description__text::text"}
+            parsing_functions: {strip: }
+
+    description:
+      scenarios:
+        - - get_element: {css: ".product-features__long-description::text"}
+            parsing_functions: {strip: }
+
+    bulletpoints:
+      scenarios:
+        - - get_elements: {css: ".key-specs__item::text"}
+            parsing_functions:
+              input: {}
+              output: {join: "; "}
+
+    bulletpoints_no:
+      scenarios:
+        - - get_elements: {css: ".key-specs__item::text"}
+            parsing_functions:
+              input: {}
+              output: {len: }
+
+    bulletpoints_len:
+      scenarios:
+        - - get_elements: {css: ".key-specs__item::text"}
+            parsing_functions:
+              input: {len: }
+              output: {}
+
+    rating:
+      scenarios:
+        - - get_element: {css: "span.rating__score::text"}
+            parsing_functions: {}
+
+    reviews:
+      scenarios:
+        - - get_element: {css: ".rating__count::text"}
+            parsing_functions: {}
+
+    primary_image:
+      scenarios:
+        - - get_element: {css: ".media__image > div > img", attr: src}
+            parsing_functions: {}
+
+    images_links:
+      scenarios:
+        - - get_elements: {css: ".media-selector__preview-image", attr: src}
+            parsing_functions:
+              input: {strip: }
+              output: {}
+
+    primary_image_link:
+      scenarios:
+        - - get_element: {css: ".media__image img", attr: src}
+            parsing_functions: {}
+
+    brand:
+      scenarios:
+        - - get_element: {css: ".pdp__icons.ng-star-inserted > a", attr: title}
+            parsing_functions: {}
+
+    price:
+      scenarios:
+        - - get_element: {css: ".price__value > *::text"}
+            parsing_functions: {strip: ,}
+
+    sku:
+      scenarios:
+        - - get_element: {css: ".product-meta__sku::text"}
+            parsing_functions: {strip: }
+
+    old_price:
+      scenarios:
+        - - get_element: {css: "span.full-price.mw-price.strikeout::text"}
+            parsing_functions: {strip: }
+
+    additional_info:
+      scenarios:
+        - - get_elements: {css: ".product-attributes__item:not([hidden]) td.spec-attributes__cell"}
+            parsing_functions:
+              input: {}
+              output: {len: }
+
+    n_of_images:
+      scenarios:
+        - - get_elements: {css: ".media-selector__preview-image"}
+            parsing_functions:
+              input: {}
+              output: {len: }
+
+    product_url:
+      scenarios:
+        - - get_element: {css: ".product-meta__sku::text"}
+            parsing_functions: {strip: , create_product_url: "https://www.elgiganten.dk/product/"}
+
+
+
+listing:
+
+  options:
+    download_delay: 3.5
+  # on_enter:
+  #   scenarios:
+  #   - - move: {x: 100, y: 80}
+  #     - click: {css: "[onclick='CookieInformation.submitAllCategories();']"}
+  #     - wait: {seconds: 4}
+      # - infinite_scroll: {}
+
+
+  containers:
+  - parent_selector: .product-tile
+    page_type: search
+    fields:
+      sku:
+        scenarios:
+          - - get_element: {css: .product-tile__sku::text}
+              parsing_functions: {strip: }
+
+      title:
+        scenarios:
+          - - get_element: {css: , attr: title}
+              parsing_functions: {}
+
+      brand:
+        scenarios:
+          - - get_element: {css: .product-creator a::text}
+              parsing_functions: {strip: }
+
+      product_url:
+        scenarios:
+          - - get_element: {css: , attr: href}
+              parsing_functions: {create_product_url: https://www.elgiganten.dk/}
+
+      bullet_points:
+        scenarios:
+          - - get_elements: {css: .bulletPoints > *::text}
+              parsing_functions:
+                input: {strip: }
+                output: {}
+
+      price:
+        scenarios:
+          - - get_element: {css: .price__value > *::text}
+              parsing_functions: {strip: }
+
+      image:
+        scenarios:
+          - - get_element: {css: img, attr: src}
+              parsing_functions: {}
+
+      in_stock:
+        scenarios:
+          - - get_element: {css: ".product-delivery__deliveryTextWithOutError"}
+              parsing_functions: {bool: }
+
+      rating:
+        scenarios:
+          - - get_element: {css: ".rating__score::text"}
+              parsing_functions: {}
+
+      reviews:
+        scenarios:
+          - - get_element: {css: ".rating__count::text"}
+              parsing_functions: {elkjop_no_review_parse: }
+  
+  pagination:
+    scenarios:
+      - - go_to: {css: .pagination__arrow.ng-star-inserted, attr: href}
+        - wait: {seconds: 2}
